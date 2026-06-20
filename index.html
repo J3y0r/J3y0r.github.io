@@ -8,6 +8,16 @@
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root {
+    --bg-color: #f4ecd8; /* 护眼棕 */
+    --card-bg: #fbf6ed;
+    --text-main: #5b4636;
+    --text-sub: #8b7355;
+    --accent: #5e72e4;
+    --border: #e6dcc8;
+    --reader-bg: #fbf6ed;
+    --reader-text: #5b4636;
+}
+[data-theme="light"] {
     --bg-color: #f4f6f9;
     --card-bg: #ffffff;
     --text-main: #333333;
@@ -16,16 +26,6 @@
     --border: #eeeeee;
     --reader-bg: #ffffff;
     --reader-text: #333333;
-}
-[data-theme="sepia"] {
-    --bg-color: #f4ecd8;
-    --card-bg: #fbf6ed;
-    --text-main: #5b4636;
-    --text-sub: #8b7355;
-    --accent: #5e72e4;
-    --border: #e6dcc8;
-    --reader-bg: #fbf6ed;
-    --reader-text: #5b4636;
 }
 [data-theme="dark"] {
     --bg-color: #1a1a1a;
@@ -136,7 +136,7 @@ body {
 }
 </style>
 </head>
-<body data-theme="light">
+<body data-theme="sepia">
 <div class="container">
     <nav class="top-nav">
         <div class="nav-brand"><h1>📖 中梧小说</h1></div>
@@ -163,7 +163,7 @@ body {
             <button class="setting-btn lh-btn" data-lh="2.2" onclick="setLineHeight(2.2,this)">宽松</button>
             <span>主题</span>
             <button class="setting-btn theme-btn" data-theme="light" onclick="setTheme('light',this)">白天</button>
-            <button class="setting-btn theme-btn" data-theme="sepia" onclick="setTheme('sepia',this)">护眼</button>
+            <button class="setting-btn theme-btn active" data-theme="sepia" onclick="setTheme('sepia',this)">护眼</button>
             <button class="setting-btn theme-btn" data-theme="dark" onclick="setTheme('dark',this)">夜间</button>
         </div>
         <div id="content-area"></div>
@@ -175,7 +175,7 @@ const GITHUB_REPO = 'novel';
 const NOVEL_FOLDER_PATH = 'novel';
 let fontSize = parseInt(localStorage.getItem('nw_fontSize')) || 18;
 let lineHeight = parseFloat(localStorage.getItem('nw_lineHeight')) || 1.8;
-let currentTheme = localStorage.getItem('nw_theme') || 'light';
+let currentTheme = localStorage.getItem('nw_theme') || 'sepia';
 const statusMsg = document.getElementById('status-msg');
 const novelListEl = document.getElementById('novel-list');
 const readerView = document.getElementById('reader-view');
@@ -201,7 +201,7 @@ async function getSortOrder(){
     }
 }
 
-// 拉取文件+排序重排
+// 拉取文件+排序重排（已修复 allNovel 拼写错误）
 async function fetchSortedNovels(){
     loader.style.display = 'block';
     statusMsg.innerText = '读取书架排序配置...';
@@ -212,12 +212,13 @@ async function fetchSortedNovels(){
         const res = await fetch(apiUrl);
         if(!res.ok) throw new Error("仓库读取失败");
         const data = await res.json();
+        // 读取所有文件（包含.md/.txt）
         const allNovels = data.filter(f=>f.type==="file" && /\.(md|txt)$/i.test(f.name));
-        // 按sort.json重排
+        // 按sort.json重排（已修复：使用 allNovels 而非 allNovel）
         const ordered = [];
         const rest = [];
         sortOrder.forEach(name=>{
-            const item = allNovel.find(f=>f.name === name);
+            const item = allNovels.find(f=>f.name === name);
             if(item) ordered.push(item);
         });
         allNovels.forEach(item=>{
